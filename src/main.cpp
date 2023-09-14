@@ -1,42 +1,83 @@
-#include <iostream>
+#include <QApplication>
+#include <QMainWindow>
+#include <QLabel>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QProgressBar>
 #include <mlpack/core.hpp>
 #include <mlpack/methods/regression/regression.hpp>
+#include <mlpack/methods/linear_regression/linear_regression.hpp>
 
 using namespace mlpack;
+using namespace mlpack::regression;
 
-int main()
+class ProjectionApp : public QMainWindow
 {
-    // Load your time series data.
-    arma::mat timeSeriesData = {
-        {1, 10},
-        {2, 12},
-        {3, 15},
-        {4, 18},
-        {5, 20},
-        {6, 25},
-        {7, 30},
-        {8, 32},
-        {9, 35},
-        {10, 40}
-    };// Make sure dt_periodo is a column in your data.
+    Q_OBJECT
 
-    // Split data into training and testing sets.
-    size_t trainSize = 80; // 80% for training, adjust as needed.
-    arma::mat trainingData = timeSeriesData.submat(0, 0, trainSize - 1, timeSeriesData.n_cols - 1);
-    arma::mat testingData = timeSeriesData.submat(trainSize, 0, timeSeriesData.n_rows - 1, timeSeriesData.n_cols - 1);
+public:
+    ProjectionApp(QWidget *parent = nullptr)
+        : QMainWindow(parent)
+    {
+        setWindowTitle("Gerar Projeções");
 
-    // Perform autoregressive modeling.
-    size_t order = 1; // Example order, adjust as needed.
-    regression::LinearRegression lr(trainingData, order);
+        QLabel *moleculeLabel = new QLabel("Nome da Molécula:", this);
+        moleculeLabel->move(10, 10);
 
-    // Predict using the model.
-    arma::rowvec predictions;
-    lr.Predict(testingData, predictions);
+        QLineEdit *moleculeLineEdit = new QLineEdit(this);
+        moleculeLineEdit->move(140, 10);
 
-    // Evaluate the model (e.g., using mean squared error).
-    arma::rowvec actuals = testingData.row(order); // Assuming order is 1.
-    double mse = arma::accu(arma::square(predictions - actuals)) / predictions.n_elem;
-    std::cout << "Mean Squared Error: " << mse << std::endl;
+        QLabel *monthsLabel = new QLabel("Número de Meses:", this);
+        monthsLabel->move(10, 40);
 
-    return 0;
+        QLineEdit *monthsLineEdit = new QLineEdit(this);
+        monthsLineEdit->move(140, 40);
+
+        QProgressBar *progressBar = new QProgressBar(this);
+        progressBar->setGeometry(10, 100, 280, 20);
+
+        QPushButton *generateButton = new QPushButton("Gerar Projeções", this);
+        generateButton->move(10, 70);
+        connect(generateButton, SIGNAL(clicked()), this, SLOT(generateProjections()));
+    }
+
+void generateProjections()
+{
+    // Load the data (assuming you have already stored the data in a CSV file).
+    arma::mat data; // Use arma::mat to represent data.
+    data::Load("your_data.csv", data, true); // Modify the file path.
+
+    // Convert categorical variables (if any) to numeric.
+    // You may use label encoders or one-hot encoding as needed.
+
+    // Prepare the input and target matrices.
+    arma::mat X = data.cols(0, data.n_cols - 2); // Adjust column indices.
+    arma::vec y = data.col(data.n_cols - 1); // Adjust column index.
+
+    // Initialize the linear regression model.
+    LinearRegression lr(X, y);
+
+    // Train the model.
+    lr.Train();
+
+    // Assuming you have a dataset to predict on, modify as needed.
+    arma::mat testData; // Load or generate your test data.
+    arma::vec predictions;
+    lr.Predict(testData, predictions);
+
+    // Now you have the predictions in 'predictions'.
+    // You can proceed with the post-processing steps.
+
+    // Save the predictions to a CSV file.
+    data::Save("predictions.csv", predictions, true); // Modify the file path.
+
+    // Additionally, you can apply further operations as needed.
+}}
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    ProjectionApp window;
+    window.show();
+    return app.exec();
 }
