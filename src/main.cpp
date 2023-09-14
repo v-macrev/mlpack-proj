@@ -3,81 +3,73 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QLineEdit>
-#include <QProgressBar>
-#include <mlpack/core.hpp>
-#include <mlpack/methods/regression/regression.hpp>
-#include <mlpack/methods/linear_regression/linear_regression.hpp>
+#include <QFileDialog>
+#include <QComboBox>
 
-using namespace mlpack;
-using namespace mlpack::regression;
-
-class ProjectionApp : public QMainWindow
+class ForecastingApp : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    ProjectionApp(QWidget *parent = nullptr)
+    ForecastingApp(QWidget *parent = nullptr)
         : QMainWindow(parent)
     {
-        setWindowTitle("Gerar Projeções");
+        setWindowTitle("Forecasting App");
 
-        QLabel *moleculeLabel = new QLabel("Nome da Molécula:", this);
-        moleculeLabel->move(10, 10);
+        QLabel *fileLabel = new QLabel("Select Excel File:", this);
+        fileLabel->move(10, 10);
 
-        QLineEdit *moleculeLineEdit = new QLineEdit(this);
-        moleculeLineEdit->move(140, 10);
+        QPushButton *fileButton = new QPushButton("Browse", this);
+        fileButton->move(150, 10);
+        connect(fileButton, SIGNAL(clicked()), this, SLOT(selectFile()));
 
-        QLabel *monthsLabel = new QLabel("Número de Meses:", this);
-        monthsLabel->move(10, 40);
+        QLabel *optionsLabel = new QLabel("Select Options:", this);
+        optionsLabel->move(10, 50);
 
-        QLineEdit *monthsLineEdit = new QLineEdit(this);
-        monthsLineEdit->move(140, 40);
+        QComboBox *optionsComboBox = new QComboBox(this);
+        optionsComboBox->addItem("Option 1");
+        optionsComboBox->addItem("Option 2");
+        optionsComboBox->move(150, 50);
 
-        QProgressBar *progressBar = new QProgressBar(this);
-        progressBar->setGeometry(10, 100, 280, 20);
+        QLabel *integerLabel = new QLabel("Enter Integer:", this);
+        integerLabel->move(10, 90);
 
-        QPushButton *generateButton = new QPushButton("Gerar Projeções", this);
-        generateButton->move(10, 70);
-        connect(generateButton, SIGNAL(clicked()), this, SLOT(generateProjections()));
+        QLineEdit *integerLineEdit = new QLineEdit(this);
+        integerLineEdit->move(150, 90);
+
+        QPushButton *submitButton = new QPushButton("Submit", this);
+        submitButton->move(10, 130);
+        connect(submitButton, SIGNAL(clicked()), this, SLOT(startForecasting()));
+
+        QPushButton *closeButton = new QPushButton("Close", this);
+        closeButton->move(150, 130);
+        connect(closeButton, SIGNAL(clicked()), this, SLOT(closeApp()));
     }
 
-void generateProjections()
-{
-    // Load the data (assuming you have already stored the data in a CSV file).
-    arma::mat data; // Use arma::mat to represent data.
-    data::Load("your_data.csv", data, true); // Modify the file path.
+public slots:
+    void selectFile()
+    {
+        QString filePath = QFileDialog::getOpenFileName(this, "Select Excel File");
+        // Store the file path for further processing.
+    }
 
-    // Convert categorical variables (if any) to numeric.
-    // You may use label encoders or one-hot encoding as needed.
+    void startForecasting()
+    {
+        // Read options, integer value, and file path, then start forecasting.
+    }
 
-    // Prepare the input and target matrices.
-    arma::mat X = data.cols(0, data.n_cols - 2); // Adjust column indices.
-    arma::vec y = data.col(data.n_cols - 1); // Adjust column index.
-
-    // Initialize the linear regression model.
-    LinearRegression lr(X, y);
-
-    // Train the model.
-    lr.Train();
-
-    // Assuming you have a dataset to predict on, modify as needed.
-    arma::mat testData; // Load or generate your test data.
-    arma::vec predictions;
-    lr.Predict(testData, predictions);
-
-    // Now you have the predictions in 'predictions'.
-    // You can proceed with the post-processing steps.
-
-    // Save the predictions to a CSV file.
-    data::Save("predictions.csv", predictions, true); // Modify the file path.
-
-    // Additionally, you can apply further operations as needed.
-}}
+    void closeApp()
+    {
+        close();
+    }
+};
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    ProjectionApp window;
+    ForecastingApp window;
     window.show();
     return app.exec();
 }
+
+#include "main.moc"
