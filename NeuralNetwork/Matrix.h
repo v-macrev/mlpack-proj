@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <cassert>
+#include <functional>
 
 class Matrix
 {
@@ -17,6 +18,17 @@ public:
 		_vals({})
 	{
 		_vals.resize(_cols * _rows, 0.0f);
+	}
+
+	Matrix applyFunction(std::function<float(const float &)> func)
+	{
+		Matrix output(_cols, _rows);
+		for (uint32_t y = 0; y < _rows; y++)
+			for (uint32_t x = 0; x < _cols; x++)
+			{
+				output.at(x, y) = func(at(x, y));
+			}
+		return output;
 	}
 
 	float &at(uint32_t col, uint32_t row){
